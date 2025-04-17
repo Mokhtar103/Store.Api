@@ -19,13 +19,11 @@ namespace Persistence.Repositories
         {
             _context = context;
         }
-        public async Task AddAsync(TEntity entity)
-        
+        public async Task AddAsync(TEntity entity) 
           => await _context.Set<TEntity>().AddAsync(entity);
         
 
-        public void Delete(TEntity entity)
-        
+        public void Delete(TEntity entity)  
           => _context.Set<TEntity>().Remove(entity);
         
 
@@ -37,13 +35,21 @@ namespace Persistence.Repositories
             return await _context.Set<TEntity>().AsNoTracking().ToListAsync();
         }
 
+       
+
         public async Task<TEntity?> GetAsync(TKey id)
-        
           =>  await _context.Set<TEntity>().FindAsync(id);
-        
+
+        public async Task<IEnumerable<TEntity>> GetAllAsync(Specification<TEntity> specifications)
+            => await ApplySpecification(specifications).ToListAsync();
+
+        public async Task<TEntity?> GetAsync(Specification<TEntity> specifications)
+            => await ApplySpecification(specifications).FirstOrDefaultAsync();
+
+        private IQueryable<TEntity> ApplySpecification(Specification<TEntity> specifications)
+            => SpecificationEvaluator.GetQuery(_context.Set<TEntity>(), specifications);
 
         public void Update(TEntity entity)
-        
           => _context.Set<TEntity>().Update(entity);
         
     }

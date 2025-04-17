@@ -20,6 +20,7 @@ namespace Persistence
         public UnitOfWork(StoreDbContext context)
         {
             _context = context;
+            _repositories = new();
         }
 
         public IGenericRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : BaseEntity<TKey>
