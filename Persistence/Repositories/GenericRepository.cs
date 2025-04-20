@@ -51,6 +51,8 @@ namespace Persistence.Repositories
 
         public void Update(TEntity entity)
           => _context.Set<TEntity>().Update(entity);
-        
+
+        public async Task<int> CountAsync(Specification<TEntity> specifications)
+            => await ApplySpecification(specifications).CountAsync();
     }
 }

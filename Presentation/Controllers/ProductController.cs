@@ -14,9 +14,9 @@ namespace Presentation.Controllers
     public class ProductController(IServiceManager serviceManager) : ApiController
     {
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductResultDto>>> GetAllProducts()
+        public async Task<ActionResult<IEnumerable<ProductResultDto>>> GetAllProducts([FromQuery]ProductSpecificationParams specs)
         {
-            var products = await serviceManager.ProductService.GetAllProductsAsync();
+            var products = await serviceManager.ProductService.GetAllProductsAsync(specs);
 
             return Ok(products);
         }

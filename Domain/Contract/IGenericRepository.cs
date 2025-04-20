@@ -18,6 +18,8 @@ namespace Domain.Contract
 
         Task<IEnumerable<TEntity>> GetAllAsync(Specification<TEntity> specifications);
 
+        Task<int> CountAsync(Specification<TEntity> specifications);
+
         Task AddAsync(TEntity entity);
 
         void Update(TEntity entity);
