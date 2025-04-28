@@ -1,6 +1,10 @@
 ﻿using Domain.Contract;
 using Domain.Entities;
+using Domain.Entities.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Persistence.Data;
+using Persistence.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +17,28 @@ namespace Persistence
     public class DbInitializer : IDbInitializer
     {
         private readonly StoreDbContext _context;
+        private readonly StoreIdentityDbContext _identityDbContext;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<User> _userManager;
 
-        public DbInitializer(StoreDbContext context)
+        public DbInitializer(StoreDbContext context,
+            StoreIdentityDbContext identityDbContext,
+            RoleManager<IdentityRole> roleManager,
+            UserManager<User> userManager)
         {
             _context = context;
+           _identityDbContext = identityDbContext;
+           _roleManager = roleManager;
+            _userManager = userManager;
         }
         public async Task InitiliazeAsync()
         {
             try
             {
+                if (_context.Database.GetPendingMigrations().Any())
+                    await _context.Database.MigrateAsync();
+               
+
                 if (!_context.ProductTypes.Any())
                 {
                     var typesData = File.ReadAllText(@"../Persistence/Data/Seeding/types.json");
@@ -68,6 +85,44 @@ namespace Persistence
             {
 
             }
+        }
+
+        public async Task InitiliazeIdentityAsync()
+        {
+            if (_identityDbContext.Database.GetPendingMigrations().Any())
+                await _identityDbContext.Database.MigrateAsync();
+
+            if(!_roleManager.Roles.Any())
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                await _roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
+            }
+
+            if (!_userManager.Users.Any())
+            {
+                var superAdminUser = new User
+                {
+                    DisplayName = "Super Admin",
+                    Email = "SuperAdmin@gmail.com",
+                    UserName = "SuperAdmin",
+                    PhoneNumber = "1234567890",
+                };
+
+                var adminUser = new User
+                {
+                    DisplayName = "Admin",
+                    Email = "Admin@gmail.com",
+                    UserName = "Admin",
+                    PhoneNumber = "987654321",
+                };
+
+                await _userManager.CreateAsync(superAdminUser, "Passw0rd");
+                await _userManager.CreateAsync(adminUser, "Passw0rd");
+
+                await _userManager.AddToRoleAsync(superAdminUser, "SuperAdmin");
+                await _userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+
         }
     }
 }
