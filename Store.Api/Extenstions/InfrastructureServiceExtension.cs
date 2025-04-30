@@ -1,12 +1,16 @@
 ﻿using Domain.Contract;
 using Domain.Entities.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Persistence;
 using Persistence.Data;
 using Persistence.Identity;
 using Persistence.Repositories;
+using Shared.IdentityDtos;
 using StackExchange.Redis;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace Store.Api.Extenstions
@@ -37,6 +41,7 @@ namespace Store.Api.Extenstions
                ));
 
             services.ConfigureIdentity();
+            services.ConfigureJwt(configuration);
 
 
             return services;
@@ -55,6 +60,33 @@ namespace Store.Api.Extenstions
             }).AddEntityFrameworkStores<StoreIdentityDbContext>();
 
             return services;
+        }
+
+        private static IServiceCollection ConfigureJwt(this IServiceCollection services, IConfiguration configuration)
+        {
+            var jwtConfig = configuration.GetSection("JwtOptions").Get<JwtOptions>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateAudience = true,
+                    ValidateIssuer = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidAudience = jwtConfig.Audience,
+                    ValidIssuer = jwtConfig.Issuer,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.SecurityKey))
+                };
+            });
+
+            return services;
+
         }
     }
 }
