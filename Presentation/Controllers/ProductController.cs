@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Attributes;
 using Services.Abstractions;
 using Shared.ProductDtos;
 using System;
@@ -12,10 +13,11 @@ using System.Threading.Tasks;
 namespace Presentation.Controllers
 {
 
-    [Authorize]
+    //[Authorize]
     public class ProductController(IServiceManager serviceManager) : ApiController
     {
         [HttpGet]
+        [RedisCache(120)]
         public async Task<ActionResult<IEnumerable<ProductResultDto>>> GetAllProducts([FromQuery]ProductSpecificationParams specs)
         {
             var products = await serviceManager.ProductService.GetAllProductsAsync(specs);
@@ -33,6 +35,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
+        [RedisCache(120)]
         public async Task<ActionResult<IEnumerable<BrandResultDto>>> GetAllBrands()
         {
             var brands = await serviceManager.ProductService.GetAllBrandsAsync();
@@ -41,6 +44,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
+        [RedisCache(120)]
         public async Task<ActionResult<IEnumerable<TypeResultDto>>> GetAllTypes()
         {
             var types = await serviceManager.ProductService.GetAllTypesAsync();
